@@ -163,6 +163,12 @@ The following arguments are supported:
 
 * `output_cost_per_pixel` - (Optional) float. Cost applied per output pixel for image-generation models.
 
+* `output_cost_per_first_megapixel` - (Optional) float. Cost of the first output megapixel for models that price it apart from the rest, such as Azure AI FLUX.2 [pro].
+
+* `output_cost_per_megapixel` - (Optional) float. Cost per output megapixel after the first, or per every output megapixel when `output_cost_per_first_megapixel` is unset.
+
+* `input_cost_per_megapixel` - (Optional) float. Cost per megapixel of reference images sent with an image edit.
+
 * `input_cost_per_second` - (Optional) float. Cost applied per input second for audio/transcription models.
 
 * `output_cost_per_second` - (Optional) float. Cost applied per output second for audio/transcription models.

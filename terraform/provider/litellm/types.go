@@ -110,6 +110,9 @@ type LiteLLMParams struct {
 	OutputCostPerToken             float64                `json:"output_cost_per_token,omitempty"`
 	InputCostPerPixel              float64                `json:"input_cost_per_pixel,omitempty"`
 	OutputCostPerPixel             float64                `json:"output_cost_per_pixel,omitempty"`
+	OutputCostPerFirstMegapixel    float64                `json:"output_cost_per_first_megapixel,omitempty"`
+	OutputCostPerMegapixel         float64                `json:"output_cost_per_megapixel,omitempty"`
+	InputCostPerMegapixel          float64                `json:"input_cost_per_megapixel,omitempty"`
 	InputCostPerSecond             float64                `json:"input_cost_per_second,omitempty"`
 	OutputCostPerSecond            float64                `json:"output_cost_per_second,omitempty"`
 	AWSAccessKeyID                 string                 `json:"aws_access_key_id,omitempty"`

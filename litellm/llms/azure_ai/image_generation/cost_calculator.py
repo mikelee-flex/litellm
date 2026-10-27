@@ -11,7 +11,7 @@ from litellm.litellm_core_utils.llm_cost_calc.utils import (
     get_cost_per_unit,
     resolve_image_model_info,
 )
-from litellm.types.utils import ImageResponse, ModelInfo
+from litellm.types.utils import CustomPricingLiteLLMParams, ImageResponse, ModelInfo
 
 _MEGAPIXEL_USAGE_HIDDEN_PARAM: Final = "megapixel_usage"
 _MEGAPIXEL_PRICE_KEYS: Final = (
@@ -19,6 +19,7 @@ _MEGAPIXEL_PRICE_KEYS: Final = (
     "output_cost_per_megapixel",
     "input_cost_per_megapixel",
 )
+_PRICE_KEYS: Final = frozenset(CustomPricingLiteLLMParams.model_fields)
 
 
 class _MegapixelUsage(BaseModel):
@@ -63,6 +64,20 @@ def _megapixel_cost(prices: ModelInfo, image_response: ImageResponse) -> float |
     )
 
 
+def _keeps_own_price(own_prices: Mapping[str, object]) -> bool:
+    sets_price: Final = any(value is not None and key in _PRICE_KEYS for key, value in own_prices.items())
+    return sets_price and all(own_prices.get(key) is None for key in _MEGAPIXEL_PRICE_KEYS)
+
+
+def _own_price_overrides(model: str, deployment: ModelInfo | None) -> tuple[Mapping[str, object], ...]:
+    from litellm.utils import runtime_model_cost_registrations
+
+    registrations: Final = tuple(
+        fields for _, fields in runtime_model_cost_registrations(model, litellm.LlmProviders.AZURE_AI.value)
+    )
+    return registrations if deployment is None else (*registrations, deployment)
+
+
 def _input_cost_per_pixel(resolved: ModelInfo) -> float:
     deployment_price: Final = get_cost_per_unit(resolved, "input_cost_per_pixel", default_value=None)
     if deployment_price is not None:
@@ -101,8 +116,8 @@ def cost_calculator(
         if token_based_cost is not None:
             return token_based_cost
 
-        bills_megapixels: Final = model_info is None or any(
-            model_info.get(key) is not None for key in _MEGAPIXEL_PRICE_KEYS
+        bills_megapixels: Final = not any(
+            _keeps_own_price(own_prices) for own_prices in _own_price_overrides(model, model_info)
         )
         megapixel_cost: Final = _megapixel_cost(_model_info, image_response) if bills_megapixels else None
         if megapixel_cost is not None:

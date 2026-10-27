@@ -146,6 +146,18 @@ func resourceLiteLLMModel() *schema.Resource {
 				Type:     schema.TypeFloat,
 				Optional: true,
 			},
+			"output_cost_per_first_megapixel": {
+				Type:     schema.TypeFloat,
+				Optional: true,
+			},
+			"output_cost_per_megapixel": {
+				Type:     schema.TypeFloat,
+				Optional: true,
+			},
+			"input_cost_per_megapixel": {
+				Type:     schema.TypeFloat,
+				Optional: true,
+			},
 			"input_cost_per_second": {
 				Type:     schema.TypeFloat,
 				Optional: true,

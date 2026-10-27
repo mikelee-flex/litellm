@@ -256,6 +256,7 @@ def test_flux2_response_preserves_mapped_dimensions():
 
 
 FOUNDRY_BASE: Final = "https://flux-billing.services.ai.azure.com"
+_MEGAPIXEL_PRICES: Final = ("output_cost_per_first_megapixel", "output_cost_per_megapixel", "input_cost_per_megapixel")
 
 
 def _flux2_route(provider_path: str) -> str:
@@ -433,3 +434,30 @@ def test_flux2_pro_generation_bills_no_references_when_input_megapixels_are_null
         _price("azure_ai/flux.2-pro", "output_cost_per_first_megapixel")
         + _price("azure_ai/flux.2-pro", "output_cost_per_megapixel")
     )
+
+
+@pytest.mark.parametrize(
+    ("registered_prices", "expected_cost"),
+    [
+        ({"output_cost_per_image": 0.05}, lambda _: 0.05),
+        (
+            {"output_cost_per_megapixel": 0.02},
+            lambda price: price("output_cost_per_first_megapixel") + 0.02 + price("input_cost_per_megapixel"),
+        ),
+    ],
+)
+@respx.mock
+def test_flux2_registered_prices_layer_over_the_catalog_megapixel_prices(
+    registered_prices: Mapping[str, float], expected_cost: Callable[[Callable[[str], float]], float]
+) -> None:
+    respx.post(url__regex=_flux2_route("flux-2-pro")).mock(
+        return_value=httpx.Response(200, json=_metered_body(1.5, 0.25))
+    )
+    catalog_price: Final = {key: _price("azure_ai/flux.2-pro", key) for key in _MEGAPIXEL_PRICES}
+    litellm.register_model({"azure_ai/flux.2-pro": dict(registered_prices)})
+
+    response: Final = litellm.image_generation(
+        model="azure_ai/flux.2-pro", prompt="A red fox", api_base=FOUNDRY_BASE, api_key="test-key"
+    )
+
+    assert response._hidden_params["response_cost"] == pytest.approx(expected_cost(catalog_price.__getitem__))

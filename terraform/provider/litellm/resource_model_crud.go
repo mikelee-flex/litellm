@@ -122,6 +122,9 @@ var attributeSentAsLiteLLMParam = map[string]string{
 	"api_version":                        "api_version",
 	"input_cost_per_pixel":               "input_cost_per_pixel",
 	"output_cost_per_pixel":              "output_cost_per_pixel",
+	"output_cost_per_first_megapixel":    "output_cost_per_first_megapixel",
+	"output_cost_per_megapixel":          "output_cost_per_megapixel",
+	"input_cost_per_megapixel":           "input_cost_per_megapixel",
 	"input_cost_per_second":              "input_cost_per_second",
 	"output_cost_per_second":             "output_cost_per_second",
 	"aws_access_key_id":                  "aws_access_key_id",
@@ -253,6 +256,15 @@ func createOrUpdateModel(d *schema.ResourceData, m interface{}, isUpdate bool) e
 	}
 	if outputCostPerPixel := d.Get("output_cost_per_pixel").(float64); outputCostPerPixel > 0 {
 		litellmParams["output_cost_per_pixel"] = outputCostPerPixel
+	}
+	if outputCostPerFirstMegapixel := d.Get("output_cost_per_first_megapixel").(float64); outputCostPerFirstMegapixel > 0 {
+		litellmParams["output_cost_per_first_megapixel"] = outputCostPerFirstMegapixel
+	}
+	if outputCostPerMegapixel := d.Get("output_cost_per_megapixel").(float64); outputCostPerMegapixel > 0 {
+		litellmParams["output_cost_per_megapixel"] = outputCostPerMegapixel
+	}
+	if inputCostPerMegapixel := d.Get("input_cost_per_megapixel").(float64); inputCostPerMegapixel > 0 {
+		litellmParams["input_cost_per_megapixel"] = inputCostPerMegapixel
 	}
 	if inputCostPerSecond := d.Get("input_cost_per_second").(float64); inputCostPerSecond > 0 {
 		litellmParams["input_cost_per_second"] = inputCostPerSecond
